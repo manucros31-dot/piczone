@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Map from './components/Map'
 import ReportModal from './components/ReportModal'
 import Badges from './components/Badges'
@@ -10,6 +10,41 @@ import { supabase, getUserId } from './lib/supabase'
 import useGeolocation from './hooks/useGeolocation'
 import useAuth from './hooks/useAuth'
 import './App.css'
+
+function ContestDisclaimer({ onDone, onCancel }) {
+  const DURATION = 5000
+  const timerRef = useRef(null)
+
+  useEffect(() => {
+    timerRef.current = setTimeout(onDone, DURATION)
+    return () => clearTimeout(timerRef.current)
+  }, [onDone])
+
+  return (
+    <div className="disclaimer-overlay" onClick={onDone}>
+      <div className="disclaimer-box" onClick={(e) => e.stopPropagation()}>
+        <p className="disclaimer-text">
+          Les informations affichées sur MoustiqueMap sont exclusivement issues de
+          signalements volontaires de la communauté d'utilisateurs. Elles reflètent
+          un ressenti subjectif à un instant donné et ne constituent en aucun cas
+          une expertise scientifique, sanitaire ou commerciale.{' '}
+          <strong>[Nom de votre société]</strong> ne peut être tenu responsable des
+          décisions prises sur la base de ces informations. Toute donnée peut être
+          contestée via le bouton "Contester".
+        </p>
+        <div className="disclaimer-progress">
+          <div className="disclaimer-progress-fill" style={{ animationDuration: `${DURATION}ms` }} />
+        </div>
+        <div className="disclaimer-actions">
+          <button className="cancel-btn" onClick={onCancel}>Annuler</button>
+          <button className="submit-btn" style={{ flex: 1 }} onClick={onDone}>
+            J'ai compris
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('carte')
@@ -23,6 +58,7 @@ export default function App() {
   const [contestMode, setContestMode] = useState(false)
   const [contestZone, setContestZone] = useState(null)
   const [contestToast, setContestToast] = useState(false)
+  const [showContestDisclaimer, setShowContestDisclaimer] = useState(false)
 
   const position = useGeolocation()
   const { user, loading } = useAuth()
@@ -105,10 +141,17 @@ export default function App() {
   }
 
   function handleContestToggle() {
-    setContestMode((prev) => {
-      if (!prev) setActiveTab('carte')
-      return !prev
-    })
+    if (contestMode) {
+      setContestMode(false)
+      return
+    }
+    setActiveTab('carte')
+    setShowContestDisclaimer(true)
+  }
+
+  function dismissDisclaimerAndActivate() {
+    setShowContestDisclaimer(false)
+    setContestMode(true)
   }
 
   function handleZoneSelect(zone) {
@@ -199,6 +242,13 @@ export default function App() {
             <p className="toast-label">Nous l'examinerons sous 72h</p>
           </div>
         </div>
+      )}
+
+      {showContestDisclaimer && (
+        <ContestDisclaimer
+          onDone={dismissDisclaimerAndActivate}
+          onCancel={() => setShowContestDisclaimer(false)}
+        />
       )}
 
       {showAnonUpsell && (
