@@ -1,0 +1,362 @@
+/* ─── Layout ─────────────────────────────────────────── */
+
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Map ─────────────────────────────────────────────── */
+
+.map-container {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.user-marker {
+  width: 18px;
+  height: 18px;
+  background: #3b82f6;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%   { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+  70%  { box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+/* ─── Bottom nav ──────────────────────────────────────── */
+
+.bottom-nav {
+  height: 68px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-top: 1px solid #e5e7eb;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  flex-shrink: 0;
+  z-index: 500;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  transition: background 0.15s;
+  color: #9ca3af;
+}
+
+.nav-item.active {
+  color: #16a34a;
+}
+
+.nav-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.nav-report-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.45);
+  font-size: 26px;
+  margin-bottom: 8px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-report-btn:active {
+  transform: scale(0.93);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+}
+
+/* ─── Report modal ────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+}
+
+.modal-content {
+  background: #fff;
+  width: 100%;
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  animation: slide-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.modal-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.location-warning {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #92400e;
+  margin-bottom: 16px;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 8px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--card-bg);
+  transition: border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.level-card.selected {
+  border-color: var(--card-color);
+  transform: scale(1.03);
+}
+
+.level-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.level-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.level-desc {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 15px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-btn:disabled {
+  opacity: 0.4;
+}
+
+/* ─── Badges page ─────────────────────────────────────── */
+
+.badges-page {
+  flex: 1;
+  overflow-y: auto;
+  background: #f0fdf4;
+  padding: 24px 16px 16px;
+}
+
+.badges-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.badges-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.badges-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.badges-count {
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.badges-count strong {
+  color: #16a34a;
+  font-size: 18px;
+}
+
+.badges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.badge-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.badge-card.unlocked {
+  background: var(--badge-bg, #dcfce7);
+  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.12);
+}
+
+.badge-card.locked {
+  opacity: 0.65;
+}
+
+.badge-emoji {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.badge-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.badge-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.badge-desc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.badge-progress {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.progress-track {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.badge-check {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--badge-color, #16a34a);
+  flex-shrink: 0;
+}
+
+/* ─── Badge toast ─────────────────────────────────────── */
+
+.badge-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111827;
+  color: #fff;
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  animation: toast-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(-50%) translateY(-60px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.toast-emoji {
+  font-size: 28px;
+}
+
+.toast-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 1px;
+}
+
+.toast-title {
+  font-size: 14px;
+  font-weight: 700;
+}
