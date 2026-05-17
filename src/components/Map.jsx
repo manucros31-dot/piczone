@@ -6,30 +6,27 @@ import L from 'leaflet'
 
 const NIVEAU_SCORE = { infeste: 3, beaucoup: 2, peu: 1, aucun: 0 }
 
-// Stops: score → [r, g, b], fillOpacity
 const COLOR_STOPS = [
-  { score: 0, rgb: [59,  109, 17],  opacity: 0.3 }, // #3B6D11
-  { score: 1, rgb: [99,  153, 34],  opacity: 0.4 }, // #639922
-  { score: 2, rgb: [186, 117, 23],  opacity: 0.5 }, // #BA7517
-  { score: 3, rgb: [163, 45,  45],  opacity: 0.6 }, // #A32D2D
+  { score: 0, rgb: [59,  109, 17],  opacity: 0.3 },
+  { score: 1, rgb: [99,  153, 34],  opacity: 0.4 },
+  { score: 2, rgb: [186, 117, 23],  opacity: 0.5 },
+  { score: 3, rgb: [163, 45,  45],  opacity: 0.6 },
 ]
 
 function scoreToStyle(score) {
-  const s = Math.max(0, Math.min(3, score))
+  const s  = Math.max(0, Math.min(3, score))
   const lo = Math.floor(s)
   const hi = Math.min(3, lo + 1)
   const t  = s - lo
-
-  const a = COLOR_STOPS[lo]
-  const b = COLOR_STOPS[hi]
-
+  const a  = COLOR_STOPS[lo]
+  const b  = COLOR_STOPS[hi]
   const r   = Math.round(a.rgb[0] + t * (b.rgb[0] - a.rgb[0]))
   const g   = Math.round(a.rgb[1] + t * (b.rgb[1] - a.rgb[1]))
   const bl  = Math.round(a.rgb[2] + t * (b.rgb[2] - a.rgb[2]))
-  const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${bl.toString(16).padStart(2,'0')}`
-  const opacity = a.opacity + t * (b.opacity - a.opacity)
-
-  return { color: hex, opacity }
+  return {
+    color:   `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${bl.toString(16).padStart(2,'0')}`,
+    opacity: a.opacity + t * (b.opacity - a.opacity),
+  }
 }
 
 function scoreToLabel(score) {
@@ -39,7 +36,7 @@ function scoreToLabel(score) {
   return 'Aucun'
 }
 
-// ─── Spatial clustering (Haversine, radius = 50 m) ───────────────────────────
+// ─── Clustering spatial (Haversine, rayon 50 m) ───────────────────────────────
 
 function haversineM(lat1, lon1, lat2, lon2) {
   const R  = 6_371_000
@@ -52,30 +49,23 @@ function haversineM(lat1, lon1, lat2, lon2) {
 }
 
 function clusterReports(reports) {
-  const CLUSTER_RADIUS = 50 // mètres
   const clusters = []
-
   for (const report of reports) {
     let merged = false
     for (const cluster of clusters) {
-      if (haversineM(report.latitude, report.longitude, cluster.lat, cluster.lng) <= CLUSTER_RADIUS) {
+      if (haversineM(report.latitude, report.longitude, cluster.lat, cluster.lng) <= 50) {
         cluster.reports.push(report)
-        // Recalcul du centroïde
         cluster.lat = cluster.reports.reduce((s, r) => s + r.latitude,  0) / cluster.reports.length
         cluster.lng = cluster.reports.reduce((s, r) => s + r.longitude, 0) / cluster.reports.length
         merged = true
         break
       }
     }
-    if (!merged) {
-      clusters.push({ lat: report.latitude, lng: report.longitude, reports: [report] })
-    }
+    if (!merged) clusters.push({ lat: report.latitude, lng: report.longitude, reports: [report] })
   }
-
   return clusters.map((c) => {
     const avgScore = c.reports.reduce((s, r) => s + (NIVEAU_SCORE[r.niveau] ?? 0), 0) / c.reports.length
-    const { color, opacity } = scoreToStyle(avgScore)
-    return { ...c, avgScore, color, opacity }
+    return { ...c, avgScore, ...scoreToStyle(avgScore) }
   })
 }
 
@@ -83,7 +73,6 @@ function clusterReports(reports) {
 
 function LocationTracker({ position }) {
   const map = useMap()
-
   useEffect(() => {
     if (position) map.flyTo([position.lat, position.lng], 17, { duration: 1.5 })
   }, [position, map])
@@ -106,14 +95,14 @@ function LocationTracker({ position }) {
 
 // ─── Map ──────────────────────────────────────────────────────────────────────
 
-export default function Map({ reports, position, contestMode, onZoneSelect }) {
+export default function Map({ reports, position }) {
   const clusters = useMemo(() => clusterReports(reports), [reports])
 
   return (
     <MapContainer
       center={[46.2276, 2.2137]}
       zoom={6}
-      className={`map-container${contestMode ? ' map-contest-mode' : ''}`}
+      className="map-container"
       zoomControl={false}
     >
       <TileLayer
@@ -129,25 +118,18 @@ export default function Map({ reports, position, contestMode, onZoneSelect }) {
           pathOptions={{
             color:       cluster.color,
             fillColor:   cluster.color,
-            fillOpacity: contestMode ? Math.min(cluster.opacity + 0.2, 0.85) : cluster.opacity,
-            weight:      contestMode ? 2.5 : 1.5,
+            fillOpacity: cluster.opacity,
+            weight:      1.5,
           }}
-          eventHandlers={
-            contestMode
-              ? { click: () => onZoneSelect(cluster.reports[0]) }
-              : {}
-          }
         >
-          {!contestMode && (
-            <Popup>
-              <strong>{scoreToLabel(cluster.avgScore)}</strong>
-              {cluster.reports.length > 1 && (
-                <><br /><small>{cluster.reports.length} signalements</small></>
-              )}
-              <br />
-              <small>{new Date(cluster.reports[0].created_at).toLocaleDateString('fr-FR')}</small>
-            </Popup>
-          )}
+          <Popup>
+            <strong>{scoreToLabel(cluster.avgScore)}</strong>
+            {cluster.reports.length > 1 && (
+              <><br /><small>{cluster.reports.length} signalements</small></>
+            )}
+            <br />
+            <small>{new Date(cluster.reports[0].created_at).toLocaleDateString('fr-FR')}</small>
+          </Popup>
         </Circle>
       ))}
 

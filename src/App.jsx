@@ -5,35 +5,10 @@ import Badges from './components/Badges'
 import BottomNav from './components/BottomNav'
 import AuthModal from './components/AuthModal'
 import Profile from './components/Profile'
-import ContestModal from './components/ContestModal'
 import { supabase, getUserId } from './lib/supabase'
 import useGeolocation from './hooks/useGeolocation'
 import useAuth from './hooks/useAuth'
 import './App.css'
-
-function ContestDisclaimer({ onDone, onCancel }) {
-  return (
-    <div className="disclaimer-overlay">
-      <div className="disclaimer-box">
-        <p className="disclaimer-text">
-          Les informations affichées sur PICZONE sont exclusivement issues de
-          signalements volontaires de la communauté d'utilisateurs. Elles reflètent
-          un ressenti subjectif à un instant donné et ne constituent en aucun cas
-          une expertise scientifique, sanitaire ou commerciale.{' '}
-          <strong>[Nom de votre société]</strong> ne peut être tenu responsable des
-          décisions prises sur la base de ces informations. Toute donnée peut être
-          contestée via le bouton "Contester".
-        </p>
-        <div className="disclaimer-actions">
-          <button className="cancel-btn" onClick={onCancel}>Annuler</button>
-          <button className="submit-btn" style={{ flex: 1 }} onClick={onDone}>
-            J'ai compris
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('carte')
@@ -44,10 +19,6 @@ export default function App() {
   const [profile, setProfile] = useState(null)
   const [newBadge, setNewBadge] = useState(null)
   const [showAnonUpsell, setShowAnonUpsell] = useState(false)
-  const [contestMode, setContestMode] = useState(false)
-  const [contestZone, setContestZone] = useState(null)
-  const [contestToast, setContestToast] = useState(false)
-  const [showContestDisclaimer, setShowContestDisclaimer] = useState(false)
 
   const position = useGeolocation()
   const { user, loading } = useAuth()
@@ -110,7 +81,7 @@ export default function App() {
     setUserReportCount(newCount)
     fetchReports()
 
-    if (newCount === 1) setNewBadge({ emoji: '🎖️', title: 'Guerre aux Moustiques' })
+    if (newCount === 1)  setNewBadge({ emoji: '🎖️', title: 'Guerre aux Moustiques' })
     else if (newCount === 20) setNewBadge({ emoji: '🛡️', title: 'Anti-Moustiques' })
     else if (newCount === 40) setNewBadge({ emoji: '💥', title: 'Moustique Destructeur' })
 
@@ -121,36 +92,11 @@ export default function App() {
   }
 
   function handleTabChange(tab) {
-    setContestMode(false)
     if (tab === 'profil' && !user && !loading) {
       setShowAuth('login')
     } else {
       setActiveTab(tab)
     }
-  }
-
-  function handleContestToggle() {
-    if (contestMode) {
-      setContestMode(false)
-      return
-    }
-    setActiveTab('carte')
-    setShowContestDisclaimer(true)
-  }
-
-  function dismissDisclaimerAndActivate() {
-    setShowContestDisclaimer(false)
-    setContestMode(true)
-  }
-
-  function handleZoneSelect(zone) {
-    setContestZone(zone)
-    setContestMode(false)
-  }
-
-  function handleContestSuccess() {
-    setContestToast(true)
-    setTimeout(() => setContestToast(false), 5000)
   }
 
   if (loading) {
@@ -163,14 +109,7 @@ export default function App() {
 
   return (
     <div className="app">
-      {activeTab === 'carte' && (
-        <Map
-          reports={reports}
-          position={position}
-          contestMode={contestMode}
-          onZoneSelect={handleZoneSelect}
-        />
-      )}
+      {activeTab === 'carte' && <Map reports={reports} position={position} />}
       {activeTab === 'badges' && (
         <Badges
           reportCount={userReportCount}
@@ -182,27 +121,11 @@ export default function App() {
         <Profile user={user} profile={profile} reportCount={userReportCount} />
       )}
 
-      {contestMode && (
-        <div className="contest-banner">
-          <span>⚠️</span>
-          <span>Appuyez sur la zone à contester</span>
-          <button className="contest-banner-cancel" onClick={() => setContestMode(false)}>✕</button>
-        </div>
-      )}
-
       {showModal && (
         <ReportModal
           onSubmit={handleReport}
           onClose={() => setShowModal(false)}
           hasPosition={!!position}
-        />
-      )}
-
-      {contestZone && (
-        <ContestModal
-          zone={contestZone}
-          onClose={() => setContestZone(null)}
-          onSuccess={handleContestSuccess}
         />
       )}
 
@@ -223,23 +146,6 @@ export default function App() {
         </div>
       )}
 
-      {contestToast && (
-        <div className="badge-toast contest-toast" onClick={() => setContestToast(false)}>
-          <span className="toast-emoji">✅</span>
-          <div>
-            <p className="toast-title">Contestation envoyée</p>
-            <p className="toast-label">Nous l'examinerons sous 72h</p>
-          </div>
-        </div>
-      )}
-
-      {showContestDisclaimer && (
-        <ContestDisclaimer
-          onDone={dismissDisclaimerAndActivate}
-          onCancel={() => setShowContestDisclaimer(false)}
-        />
-      )}
-
       {showAnonUpsell && (
         <div className="anon-upsell">
           <span>🏅 Créez un compte pour sauvegarder vos badges et suivre votre impact !</span>
@@ -257,8 +163,6 @@ export default function App() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onReport={() => setShowModal(true)}
-        onContest={handleContestToggle}
-        contestMode={contestMode}
         user={user}
       />
     </div>

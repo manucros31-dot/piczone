@@ -1,8 +1,8 @@
-export default function BottomNav({ activeTab, onTabChange, onReport, onContest, contestMode, user }) {
+export default function BottomNav({ activeTab, onTabChange, onReport, user }) {
   return (
     <nav className="bottom-nav">
       <button
-        className={`nav-item ${activeTab === 'carte' && !contestMode ? 'active' : ''}`}
+        className={`nav-item ${activeTab === 'carte' ? 'active' : ''}`}
         onClick={() => onTabChange('carte')}
       >
         <span className="nav-icon">🗺️</span>
@@ -19,14 +19,6 @@ export default function BottomNav({ activeTab, onTabChange, onReport, onContest,
 
       <button className="nav-report-btn" onClick={onReport}>
         <span className="nav-report-icon">🦟</span>
-      </button>
-
-      <button
-        className={`nav-item ${contestMode ? 'active contest-active' : ''}`}
-        onClick={onContest}
-      >
-        <span className="nav-icon">⚠️</span>
-        <span className="nav-label">Contester</span>
       </button>
 
       <button
