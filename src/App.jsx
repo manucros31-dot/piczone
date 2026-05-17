@@ -104,7 +104,7 @@ export default function App() {
     if (!planResult) return null
     const months = new Set(planResult.months)
     const nearby = reports.filter(
-      (r) => haversineM(r.latitude, r.longitude, planResult.lat, planResult.lng) <= 500
+      (r) => haversineM(r.latitude, r.longitude, planResult.lat, planResult.lng) <= 200
     )
     const filtered = nearby.filter((r) => months.has(new Date(r.created_at).getMonth() + 1))
     const avgScore  = filtered.length > 0
@@ -159,17 +159,12 @@ export default function App() {
               </p>
             ) : (
               <p className="plan-banner-score">
-                Aucun signalement pour cette zone et cette période.
-                Soyez le premier à signaler ! 🦟
+                Aucun signalement connu pour cette zone.
+                Les données apparaîtront quand des utilisateurs seront sur place.
               </p>
             )}
           </div>
           <div className="plan-banner-actions">
-            {planStats.count === 0 && (
-              <button className="plan-banner-report-btn" onClick={() => setShowModal(true)}>
-                Signaler cette zone
-              </button>
-            )}
             <button className="plan-banner-clear" onClick={() => setPlanResult(null)}>
               Effacer la recherche ✕
             </button>

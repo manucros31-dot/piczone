@@ -81,17 +81,16 @@ export default function Map({ reports, position, planResult }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Cercle de recherche plan */}
+      {/* Cercle de repère plan (100m diamètre, même style que les signalements) */}
       {planResult && (
         <Circle
           center={[planResult.lat, planResult.lng]}
-          radius={500}
+          radius={50}
           pathOptions={{
-            color:       '#3B6D11',
-            fillColor:   '#3B6D11',
-            fillOpacity: 0.04,
-            weight:      2,
-            dashArray:   '10 7',
+            color:       '#1565C0',
+            fillColor:   '#1565C0',
+            fillOpacity: 0.3,
+            weight:      1.5,
           }}
         />
       )}
