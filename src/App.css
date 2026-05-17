@@ -796,3 +796,279 @@
   line-height: 1.8;
 }
 
+/* ─── Bouton pastille Je planifie ────────────────────── */
+
+.plan-pill {
+  position: fixed;
+  left: 14px;
+  top: 33vh;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid #3B6D11;
+  color: #3B6D11;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plan-pill:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.12);
+}
+
+/* ─── Bannière résultat plan ──────────────────────────── */
+
+.plan-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 600;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #d1fae5;
+  padding: 12px 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+.plan-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.plan-banner-location {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.plan-banner-period {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.plan-banner-score {
+  font-size: 13px;
+  color: #374151;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.plan-banner-level {
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.plan-banner-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.plan-banner-clear {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font-weight: 500;
+}
+
+.plan-banner-report-btn {
+  font-size: 12px;
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: #16a34a;
+  font-weight: 600;
+}
+
+/* ─── Plan modal ──────────────────────────────────────── */
+
+.plan-modal {
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.plan-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-step {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #e5e7eb;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.plan-step.done {
+  border-color: #16a34a;
+  color: #16a34a;
+  background: #dcfce7;
+}
+
+.plan-step-line {
+  width: 20px;
+  height: 2px;
+  background: #e5e7eb;
+  border-radius: 1px;
+}
+
+.plan-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Autocomplete ── */
+
+.search-wrap {
+  position: relative;
+}
+
+.search-input {
+  padding-right: 36px;
+}
+
+.search-spinner {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+}
+
+.suggestions-list {
+  list-style: none;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: -8px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.12s;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:active {
+  background: #f0fdf4;
+}
+
+.suggestion-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.suggestion-text {
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.4;
+}
+
+.search-empty {
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: center;
+  padding: 8px 0;
+}
+
+/* ── Location chip ── */
+
+.plan-location-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #065f46;
+  font-weight: 500;
+}
+
+.chip-edit {
+  margin-left: auto;
+  font-size: 12px;
+  color: #16a34a;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* ── Date type toggle ── */
+
+.date-type-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.date-type-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s;
+}
+
+.date-type-btn.active {
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.plan-period-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+

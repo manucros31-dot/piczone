@@ -1,52 +1,16 @@
 import { useEffect, useMemo } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import { NIVEAU_SCORE, haversineM, scoreToColor, scoreToLabel } from '../lib/geo'
 
-// ─── Score mapping ────────────────────────────────────────────────────────────
+// ─── Colour stops (fill opacity only — color comes from geo.js) ───────────────
 
-const NIVEAU_SCORE = { infeste: 3, beaucoup: 2, peu: 1, aucun: 0 }
-
-const COLOR_STOPS = [
-  { score: 0, rgb: [59,  109, 17],  opacity: 0.3 },
-  { score: 1, rgb: [99,  153, 34],  opacity: 0.4 },
-  { score: 2, rgb: [186, 117, 23],  opacity: 0.5 },
-  { score: 3, rgb: [163, 45,  45],  opacity: 0.6 },
-]
-
-function scoreToStyle(score) {
-  const s  = Math.max(0, Math.min(3, score))
-  const lo = Math.floor(s)
-  const hi = Math.min(3, lo + 1)
-  const t  = s - lo
-  const a  = COLOR_STOPS[lo]
-  const b  = COLOR_STOPS[hi]
-  const r   = Math.round(a.rgb[0] + t * (b.rgb[0] - a.rgb[0]))
-  const g   = Math.round(a.rgb[1] + t * (b.rgb[1] - a.rgb[1]))
-  const bl  = Math.round(a.rgb[2] + t * (b.rgb[2] - a.rgb[2]))
-  return {
-    color:   `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${bl.toString(16).padStart(2,'0')}`,
-    opacity: a.opacity + t * (b.opacity - a.opacity),
-  }
+const OPACITY_BY_SCORE = (score) => {
+  const s = Math.max(0, Math.min(3, score))
+  return 0.3 + (s / 3) * 0.3 // 0.3 → 0.6
 }
 
-function scoreToLabel(score) {
-  if (score >= 2.5) return 'Infesté'
-  if (score >= 1.5) return 'Beaucoup'
-  if (score >= 0.5) return 'Peu'
-  return 'Aucun'
-}
-
-// ─── Clustering spatial (Haversine, rayon 50 m) ───────────────────────────────
-
-function haversineM(lat1, lon1, lat2, lon2) {
-  const R  = 6_371_000
-  const φ1 = (lat1 * Math.PI) / 180
-  const φ2 = (lat2 * Math.PI) / 180
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180
-  const a  = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
+// ─── Clustering spatial (rayon 50 m) ─────────────────────────────────────────
 
 function clusterReports(reports) {
   const clusters = []
@@ -65,7 +29,7 @@ function clusterReports(reports) {
   }
   return clusters.map((c) => {
     const avgScore = c.reports.reduce((s, r) => s + (NIVEAU_SCORE[r.niveau] ?? 0), 0) / c.reports.length
-    return { ...c, avgScore, ...scoreToStyle(avgScore) }
+    return { ...c, avgScore, color: scoreToColor(avgScore), opacity: OPACITY_BY_SCORE(avgScore) }
   })
 }
 
@@ -85,7 +49,6 @@ function LocationTracker({ position }) {
     iconSize: [20, 20],
     iconAnchor: [10, 10],
   })
-
   return (
     <Marker position={[position.lat, position.lng]} icon={icon}>
       <Popup>Vous êtes ici</Popup>
@@ -93,9 +56,17 @@ function LocationTracker({ position }) {
   )
 }
 
+function PlanController({ planResult }) {
+  const map = useMap()
+  useEffect(() => {
+    if (planResult) map.flyTo([planResult.lat, planResult.lng], 15, { duration: 1.2 })
+  }, [planResult, map])
+  return null
+}
+
 // ─── Map ──────────────────────────────────────────────────────────────────────
 
-export default function Map({ reports, position }) {
+export default function Map({ reports, position, planResult }) {
   const clusters = useMemo(() => clusterReports(reports), [reports])
 
   return (
@@ -110,6 +81,22 @@ export default function Map({ reports, position }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
+      {/* Cercle de recherche plan */}
+      {planResult && (
+        <Circle
+          center={[planResult.lat, planResult.lng]}
+          radius={500}
+          pathOptions={{
+            color:       '#3B6D11',
+            fillColor:   '#3B6D11',
+            fillOpacity: 0.04,
+            weight:      2,
+            dashArray:   '10 7',
+          }}
+        />
+      )}
+
+      {/* Signalements (filtrés ou tous) */}
       {clusters.map((cluster, i) => (
         <Circle
           key={i}
@@ -134,6 +121,7 @@ export default function Map({ reports, position }) {
       ))}
 
       <LocationTracker position={position} />
+      <PlanController planResult={planResult} />
     </MapContainer>
   )
 }
