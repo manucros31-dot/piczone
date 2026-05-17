@@ -41,3 +41,26 @@ create policy "Insertion propre profil" on profiles
 
 create policy "Modification propre profil" on profiles
   for update using (auth.uid() = id);
+
+-- ─── Contestations ─────────────────────────────────────────────────────────────
+
+create table if not exists contestations (
+  id uuid default gen_random_uuid() primary key,
+  zone_id uuid references signalements(id) on delete set null,
+  latitude float not null,
+  longitude float not null,
+  niveau text,
+  motif text not null,
+  commentaire text check (char_length(commentaire) <= 300),
+  email text,
+  statut text not null default 'en_attente',
+  created_at timestamp with time zone default now()
+);
+
+alter table contestations enable row level security;
+
+create policy "Insertion publique contestations" on contestations
+  for insert with check (true);
+
+create policy "Lecture admin contestations" on contestations
+  for select using (true);

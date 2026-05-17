@@ -41,12 +41,12 @@ function LocationTracker({ position }) {
   )
 }
 
-export default function Map({ reports, position }) {
+export default function Map({ reports, position, contestMode, onZoneSelect }) {
   return (
     <MapContainer
       center={[46.2276, 2.2137]}
       zoom={6}
-      className="map-container"
+      className={`map-container${contestMode ? ' map-contest-mode' : ''}`}
       zoomControl={false}
     >
       <TileLayer
@@ -62,15 +62,22 @@ export default function Map({ reports, position }) {
           pathOptions={{
             color: LEVEL_COLORS[report.niveau],
             fillColor: LEVEL_COLORS[report.niveau],
-            fillOpacity: 0.35,
-            weight: 1.5,
+            fillOpacity: contestMode ? 0.55 : 0.35,
+            weight: contestMode ? 2.5 : 1.5,
           }}
+          eventHandlers={
+            contestMode
+              ? { click: () => onZoneSelect(report) }
+              : {}
+          }
         >
-          <Popup>
-            <strong>{LEVEL_LABELS[report.niveau]}</strong>
-            <br />
-            <small>{new Date(report.created_at).toLocaleDateString('fr-FR')}</small>
-          </Popup>
+          {!contestMode && (
+            <Popup>
+              <strong>{LEVEL_LABELS[report.niveau]}</strong>
+              <br />
+              <small>{new Date(report.created_at).toLocaleDateString('fr-FR')}</small>
+            </Popup>
+          )}
         </Circle>
       ))}
 
