@@ -2,6 +2,23 @@ import { useState } from 'react'
 import { supabase, getUserId } from '../lib/supabase'
 import PrivacyPolicy from './PrivacyPolicy'
 
+function translateAuthError(message) {
+  if (!message) return 'Une erreur est survenue.'
+  if (message.includes('Invalid login credentials'))
+    return 'Email ou mot de passe incorrect.'
+  if (message.includes('you can only request this after'))
+    return 'Trop de tentatives. Veuillez patienter quelques secondes avant de réessayer.'
+  if (message.includes('User already registered') || message.includes('already been registered'))
+    return 'Un compte existe déjà avec cet email.'
+  if (message.includes('Password should be at least'))
+    return 'Le mot de passe doit faire au moins 8 caractères.'
+  if (message.includes('Unable to validate email address'))
+    return 'Adresse email invalide.'
+  if (message.includes('Email rate limit exceeded'))
+    return 'Trop d\'emails envoyés. Réessayez plus tard.'
+  return message
+}
+
 async function transferAnonReports(userId) {
   const anonId = getUserId()
   await supabase
@@ -43,9 +60,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
     setError(null)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError(error.message === 'Invalid login credentials'
-        ? 'Email ou mot de passe incorrect.'
-        : error.message)
+      setError(translateAuthError(error.message))
     } else {
       await transferAnonReports(data.user.id)
       onClose()
@@ -93,7 +108,7 @@ export default function AuthModal({ onClose, initialMode = 'login' }) {
     })
 
     if (error) {
-      setError(error.message)
+      setError(translateAuthError(error.message))
       setLoading(false)
       return
     }
