@@ -1,6 +1,6 @@
 {
-  "name": "PicZone",
-  "short_name": "PicZone",
+  "name": "PikZone",
+  "short_name": "PikZone",
   "description": "Carte collaborative des moustiques en France",
   "start_url": "/",
   "display": "standalone",

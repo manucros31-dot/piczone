@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const DISMISS_KEY = 'piczone_install_dismissed'
+const DISMISS_KEY = 'pikzone_install_dismissed'
 
 export default function InstallBanner() {
   const [show, setShow] = useState(false)
@@ -30,7 +30,7 @@ export default function InstallBanner() {
 
   return (
     <div className="install-banner">
-      <span className="install-banner-text">📱 Installez PicZone sur votre téléphone !</span>
+      <span className="install-banner-text">📱 Installez PikZone sur votre téléphone !</span>
       <div className="install-banner-actions">
         <button className="install-btn-primary" onClick={handleInstall}>Installer</button>
         <button className="install-btn-later" onClick={dismiss}>Plus tard</button>

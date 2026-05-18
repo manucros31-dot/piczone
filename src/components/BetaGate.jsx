@@ -1,7 +1,7 @@
 // TODO: supprimer cette page avant le lancement public
 import { useState } from 'react'
 
-const BETA_KEY = 'piczone_beta_access'
+const BETA_KEY = 'pikzone_beta_access'
 const BETA_PWD = import.meta.env.VITE_BETA_PASSWORD
 
 export default function BetaGate({ children }) {
@@ -27,7 +27,7 @@ export default function BetaGate({ children }) {
     <div className="beta-gate">
       <div className="beta-content">
         <span className="beta-mosquito">🦟</span>
-        <h1 className="beta-title">PicZone</h1>
+        <h1 className="beta-title">PikZone</h1>
         <p className="beta-subtitle">Accès bêta privé</p>
         <form onSubmit={handleSubmit} className="beta-form">
           <input
