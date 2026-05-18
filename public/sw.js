@@ -1,4 +1,4 @@
-const CACHE = 'pikzone-v1'
+const CACHE = 'pikzone-v2'
 const PRECACHE = ['/', '/index.html']
 
 self.addEventListener('install', (e) => {
