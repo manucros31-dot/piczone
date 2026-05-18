@@ -20,6 +20,73 @@ export function isActiveEvent(event) {
   return start <= now && (!end || end >= now)
 }
 
+// ─── Mosquito Alert API ───────────────────────────────────────────────────────
+// API publique, sans authentification — https://api.mosquitoalert.com/v1/
+// Observations validées de moustiques tigres en Europe.
+// Note : la France est sous-représentée (communauté principalement ESP/ITA/GRC).
+// On affiche l'Europe entière (bbox -10/35/25/55) pour le contexte régional.
+
+const MA_CACHE_KEY  = 'pikzone_mosquitoalert_cache'
+const MA_CACHE_TTL  = 2 * 60 * 60 * 1000  // 2 heures en ms
+
+// Bbox Europe (lon_min, lat_min, lon_max, lat_max)
+const EU_BBOX = { lonMin: -10, latMin: 35, lonMax: 25, latMax: 55 }
+
+function inEurope(lat, lon) {
+  return lat >= EU_BBOX.latMin && lat <= EU_BBOX.latMax
+      && lon >= EU_BBOX.lonMin && lon <= EU_BBOX.lonMax
+}
+
+export async function fetchMosquitoAlertData() {
+  // 1. Vérifier le cache sessionStorage
+  try {
+    const raw = sessionStorage.getItem(MA_CACHE_KEY)
+    if (raw) {
+      const { ts, data } = JSON.parse(raw)
+      if (Date.now() - ts < MA_CACHE_TTL) return data
+    }
+  } catch { /* sessionStorage indisponible */ }
+
+  // 2. Paginer sur les 3 premières pages (300 obs récentes), filtrer bbox Europe
+  const results = []
+  try {
+    for (let page = 1; page <= 3; page++) {
+      const res = await fetch(
+        `https://api.mosquitoalert.com/v1/observations/?page_size=100&ordering=-created_at&page=${page}`,
+        { signal: AbortSignal.timeout(8000) }
+      )
+      if (!res.ok) break
+      const json = await res.json()
+      for (const obs of json.results ?? []) {
+        const loc = obs.location
+        if (!loc?.point) continue
+        const { latitude: lat, longitude: lon } = loc.point
+        if (!inEurope(lat, lon)) continue
+        results.push({
+          id:          obs.uuid,
+          lat,
+          lon,
+          country:     loc.country?.iso3_code ?? '?',
+          city:        (loc.display_name ?? '').split(',').slice(0, 2).join(', '),
+          date:        obs.created_at?.slice(0, 10) ?? '',
+          photoUrl:    obs.identification?.photo?.url ?? null,
+          published:   obs.published ?? true,
+        })
+      }
+      if (!json.next) break
+    }
+  } catch {
+    return [] // Échec silencieux
+  }
+
+  // 3. Mettre en cache
+  try {
+    sessionStorage.setItem(MA_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: results }))
+  } catch { /* quota dépassé */ }
+
+  return results
+}
+
 // ─── Hook data.gouv.fr (à brancher quand le format CSV est confirmé) ──────────
 // Pour l'activer :
 //   1. Vérifier le dataset ID sur https://www.data.gouv.fr/fr/datasets/?q=moustique+tigre

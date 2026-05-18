@@ -67,12 +67,18 @@ function PlanController({ planResult }) {
 
 // ─── Map ──────────────────────────────────────────────────────────────────────
 
-export default function Map({ reports, position, planResult, officialEvents = [], showOfficial = false }) {
+export default function Map({ reports, position, planResult, officialEvents = [], showOfficial = false, mosquitoAlertData = [] }) {
   const clusters      = useMemo(() => clusterReports(reports), [reports])
   const activeOfficial = useMemo(
     () => showOfficial ? officialEvents.filter(isActiveEvent) : [],
     [officialEvents, showOfficial]
   )
+  const maIcon = useMemo(() => L.divIcon({
+    className: '',
+    html: '<div class="ma-marker">🦟</div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  }), [])
 
   return (
     <MapContainer
@@ -161,6 +167,26 @@ export default function Map({ reports, position, planResult, officialEvents = []
           </Marker>
         )
       })}
+
+      {/* ── Mosquito Alert (observations Europe validées) ── */}
+      {showOfficial && mosquitoAlertData.map((obs) => (
+        <Marker key={obs.id} position={[obs.lat, obs.lon]} icon={maIcon}>
+          <Popup>
+            <strong>🦟 Moustique tigre observé</strong><br />
+            <small>{obs.city}</small><br />
+            <small>📅 {obs.date}</small><br />
+            {obs.photoUrl && (
+              <><img src={obs.photoUrl} alt="Photo" style={{ width: 120, borderRadius: 6, marginTop: 4 }} /><br /></>
+            )}
+            <small style={{ color: '#6b7280' }}>
+              Source :{' '}
+              <a href="https://www.mosquitoalert.com" target="_blank" rel="noopener noreferrer">
+                Mosquito Alert
+              </a>
+            </small>
+          </Popup>
+        </Marker>
+      ))}
 
       <LocationTracker position={position} />
       <PlanController planResult={planResult} />

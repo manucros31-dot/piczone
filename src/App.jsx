@@ -11,6 +11,7 @@ import InstallBanner from './components/InstallBanner'
 import AdminPage from './components/AdminPage'
 import AlertBanner from './components/AlertBanner'
 import { NIVEAU_SCORE, haversineM, scoreToLabel, scoreToColor } from './lib/geo'
+import { fetchMosquitoAlertData } from './lib/officialData'
 import useGeolocation from './hooks/useGeolocation'
 import useAuth from './hooks/useAuth'
 import './App.css'
@@ -34,8 +35,10 @@ export default function App() {
   const [profile, setProfile]           = useState(null)
   const [newBadge, setNewBadge]             = useState(null)
   const [showAnonUpsell, setShowAnonUpsell] = useState(false)
-  const [officialEvents, setOfficialEvents] = useState([])
-  const [showOfficial, setShowOfficial]     = useState(false)
+  const [officialEvents, setOfficialEvents]     = useState([])
+  const [mosquitoAlertData, setMosquitoAlertData] = useState([])
+  const [showOfficial, setShowOfficial]         = useState(false)
+  const [maLoading, setMaLoading]               = useState(false)
   const [isAdmin, setIsAdmin]               = useState(
     () => window.location.pathname === '/admin'
   )
@@ -54,6 +57,14 @@ export default function App() {
     const { data } = await supabase
       .from('official_events').select('*').order('created_at', { ascending: false })
     if (data) setOfficialEvents(data)
+  }
+
+  async function loadMosquitoAlert() {
+    if (mosquitoAlertData.length > 0) return   // déjà chargé
+    setMaLoading(true)
+    const data = await fetchMosquitoAlertData()
+    setMosquitoAlertData(data)
+    setMaLoading(false)
   }
 
   async function fetchReports() {
@@ -161,6 +172,7 @@ export default function App() {
           planResult={planResult}
           officialEvents={officialEvents}
           showOfficial={showOfficial}
+          mosquitoAlertData={mosquitoAlertData}
         />
       )}
       {activeTab === 'badges' && (
@@ -182,9 +194,13 @@ export default function App() {
       {activeTab === 'carte' && (
         <button
           className={`official-toggle ${showOfficial ? 'official-toggle-on' : ''}`}
-          onClick={() => setShowOfficial(v => !v)}
+          onClick={() => {
+            const next = !showOfficial
+            setShowOfficial(next)
+            if (next) loadMosquitoAlert()
+          }}
         >
-          👁️ <span>{showOfficial ? 'Officiel ON' : 'Officiel OFF'}</span>
+          👁️ <span>{maLoading ? 'Chargement…' : showOfficial ? 'Officiel ON' : 'Officiel OFF'}</span>
         </button>
       )}
 
