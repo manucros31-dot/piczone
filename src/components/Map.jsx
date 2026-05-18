@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useCallback } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, Popup, useMap, AttributionControl } from 'react-leaflet'
 import L from 'leaflet'
 import { NIVEAU_SCORE, haversineM, scoreToColor, scoreToLabel } from '../lib/geo'
@@ -36,14 +36,9 @@ function clusterReports(reports) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function LocationTracker({ position }) {
-  const map = useMap()
-  useEffect(() => {
-    if (position) map.flyTo([position.lat, position.lng], 17, { duration: 1.5 })
-  }, [position, map])
-
+// Affiche uniquement le marqueur GPS — sans recentrage automatique
+function LocationMarker({ position }) {
   if (!position) return null
-
   const icon = L.divIcon({
     className: '',
     html: '<div class="user-marker"></div>',
@@ -57,6 +52,76 @@ function LocationTracker({ position }) {
   )
 }
 
+// Gère : centrage initial, timer 5s auto-recenter, bouton recenter externe
+function MapController({ position, onCenterChange, recenterRef }) {
+  const map             = useMap()
+  const timerRef        = useRef(null)
+  const initializedRef  = useRef(false)
+  const isProgrammatic  = useRef(false)
+  const positionRef     = useRef(position)
+
+  // Garde positionRef à jour sans recréer les handlers
+  useEffect(() => { positionRef.current = position }, [position])
+
+  const flyToGPS = useCallback(() => {
+    const pos = positionRef.current
+    if (!pos) return
+    if (timerRef.current) clearTimeout(timerRef.current)
+    isProgrammatic.current = true
+    map.flyTo([pos.lat, pos.lng], Math.max(map.getZoom(), 15), { duration: 1.5 })
+  }, [map])
+
+  // Expose flyToGPS au parent via ref
+  useEffect(() => {
+    if (recenterRef) recenterRef.current = flyToGPS
+  }, [flyToGPS, recenterRef])
+
+  // Centrage initial unique dès que le GPS est obtenu
+  useEffect(() => {
+    if (position && !initializedRef.current) {
+      initializedRef.current = true
+      isProgrammatic.current = true
+      map.flyTo([position.lat, position.lng], 15, { duration: 1.5 })
+    }
+  }, [position, map])
+
+  // Écoute les mouvements : notifie le centre et gère le timer 5s
+  useEffect(() => {
+    function onMoveStart() {
+      // Mouvement initié par l'utilisateur → annuler le timer
+      if (!isProgrammatic.current && timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+    }
+    function onMoveEnd() {
+      const c = map.getCenter()
+      onCenterChange({ lat: c.lat, lng: c.lng })
+
+      if (isProgrammatic.current) {
+        // Notre propre flyTo vient de finir → reset flag, pas de timer
+        isProgrammatic.current = false
+        return
+      }
+      // Mouvement utilisateur → déclencher retour auto dans 5s
+      if (positionRef.current) {
+        if (timerRef.current) clearTimeout(timerRef.current)
+        timerRef.current = setTimeout(flyToGPS, 5000)
+      }
+    }
+
+    map.on('movestart', onMoveStart)
+    map.on('moveend',   onMoveEnd)
+    return () => {
+      map.off('movestart', onMoveStart)
+      map.off('moveend',   onMoveEnd)
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [map, onCenterChange, flyToGPS])
+
+  return null
+}
+
 function PlanController({ planResult }) {
   const map = useMap()
   useEffect(() => {
@@ -67,7 +132,7 @@ function PlanController({ planResult }) {
 
 // ─── Map ──────────────────────────────────────────────────────────────────────
 
-export default function Map({ reports, position, planResult, officialEvents = [], showOfficial = false, mosquitoAlertData = [] }) {
+export default function Map({ reports, position, planResult, officialEvents = [], showOfficial = false, mosquitoAlertData = [], onCenterChange, recenterRef }) {
   const clusters      = useMemo(() => clusterReports(reports), [reports])
   const activeOfficial = useMemo(
     () => showOfficial ? officialEvents.filter(isActiveEvent) : [],
@@ -191,7 +256,8 @@ export default function Map({ reports, position, planResult, officialEvents = []
         </Marker>
       ))}
 
-      <LocationTracker position={position} />
+      <LocationMarker position={position} />
+      <MapController position={position} onCenterChange={onCenterChange} recenterRef={recenterRef} />
       <PlanController planResult={planResult} />
     </MapContainer>
   )

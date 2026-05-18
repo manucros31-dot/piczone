@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Map from './components/Map'
 import ReportModal from './components/ReportModal'
 import Badges from './components/Badges'
@@ -42,9 +42,33 @@ export default function App() {
   const [isAdmin, setIsAdmin]               = useState(
     () => window.location.pathname === '/admin'
   )
+  const [mapCenter, setMapCenter]           = useState(null)
+  const [showLockedToast, setShowLockedToast] = useState(false)
+  const recenterRef = useRef(null)
+  const lockedToastTimer = useRef(null)
 
   const position = useGeolocation()
   const { user, loading } = useAuth()
+
+  // Distance entre le centre de la carte et la position GPS (≤ 50 m = actif)
+  const isNearGPS = useMemo(() => {
+    if (!position || !mapCenter) return false
+    return haversineM(mapCenter.lat, mapCenter.lng, position.lat, position.lng) <= 50
+  }, [position, mapCenter])
+
+  const handleMapCenterChange = useCallback((center) => {
+    setMapCenter(center)
+  }, [])
+
+  function handleReportBlocked() {
+    if (lockedToastTimer.current) clearTimeout(lockedToastTimer.current)
+    setShowLockedToast(true)
+    lockedToastTimer.current = setTimeout(() => setShowLockedToast(false), 3500)
+  }
+
+  function handleRecenter() {
+    recenterRef.current?.()
+  }
 
   useEffect(() => { fetchReports(); fetchOfficialEvents() }, [])
   useEffect(() => {
@@ -173,6 +197,8 @@ export default function App() {
           officialEvents={officialEvents}
           showOfficial={showOfficial}
           mosquitoAlertData={mosquitoAlertData}
+          onCenterChange={handleMapCenterChange}
+          recenterRef={recenterRef}
         />
       )}
       {activeTab === 'badges' && (
@@ -187,6 +213,17 @@ export default function App() {
         <button className="plan-pill" onClick={() => setShowPlan(true)}>
           <span>📅</span>
           <span>Je planifie</span>
+        </button>
+      )}
+
+      {/* ── Bouton recenter GPS ── */}
+      {activeTab === 'carte' && position && (
+        <button
+          className={`recenter-btn ${!isNearGPS ? 'away' : ''}`}
+          onClick={handleRecenter}
+          title="Recentrer sur ma position"
+        >
+          📍
         </button>
       )}
 
@@ -264,7 +301,21 @@ export default function App() {
         </div>
       )}
 
-      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} onReport={() => setShowModal(true)} user={user} />
+      {showLockedToast && (
+        <div className="locked-toast">
+          📍 Vous ne pouvez signaler que votre position actuelle.<br />
+          Revenez à votre position pour signaler.
+        </div>
+      )}
+
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onReport={() => setShowModal(true)}
+        onReportBlocked={handleReportBlocked}
+        user={user}
+        isNearGPS={isNearGPS}
+      />
       <InstallBanner />
     </div>
   )

@@ -1,4 +1,4 @@
-export default function BottomNav({ activeTab, onTabChange, onReport, user }) {
+export default function BottomNav({ activeTab, onTabChange, onReport, onReportBlocked, user, isNearGPS }) {
   return (
     <nav className="bottom-nav">
       <button
@@ -9,8 +9,11 @@ export default function BottomNav({ activeTab, onTabChange, onReport, user }) {
         <span className="nav-label">Carte</span>
       </button>
 
-      <button className="nav-report-btn" onClick={onReport}>
-        <span className="nav-report-icon">🦟</span>
+      <button
+        className={`nav-report-btn ${!isNearGPS ? 'locked' : ''}`}
+        onClick={isNearGPS ? onReport : onReportBlocked}
+      >
+        <span className="nav-report-icon">{isNearGPS ? '🦟' : '🔒'}</span>
       </button>
 
       <button
