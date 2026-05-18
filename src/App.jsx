@@ -8,6 +8,8 @@ import Profile from './components/Profile'
 import PlanModal from './components/PlanModal'
 import { supabase, getUserId } from './lib/supabase'
 import InstallBanner from './components/InstallBanner'
+import AdminPage from './components/AdminPage'
+import AlertBanner from './components/AlertBanner'
 import { NIVEAU_SCORE, haversineM, scoreToLabel, scoreToColor } from './lib/geo'
 import useGeolocation from './hooks/useGeolocation'
 import useAuth from './hooks/useAuth'
@@ -30,18 +32,29 @@ export default function App() {
   const [reports, setReports]           = useState([])
   const [userReportCount, setUserReportCount] = useState(0)
   const [profile, setProfile]           = useState(null)
-  const [newBadge, setNewBadge]         = useState(null)
+  const [newBadge, setNewBadge]             = useState(null)
   const [showAnonUpsell, setShowAnonUpsell] = useState(false)
+  const [officialEvents, setOfficialEvents] = useState([])
+  const [showOfficial, setShowOfficial]     = useState(false)
+  const [isAdmin, setIsAdmin]               = useState(
+    () => window.location.pathname === '/admin'
+  )
 
   const position = useGeolocation()
   const { user, loading } = useAuth()
 
-  useEffect(() => { fetchReports() }, [])
+  useEffect(() => { fetchReports(); fetchOfficialEvents() }, [])
   useEffect(() => {
     fetchUserCount()
     if (user) fetchProfile()
     else setProfile(null)
   }, [user])
+
+  async function fetchOfficialEvents() {
+    const { data } = await supabase
+      .from('official_events').select('*').order('created_at', { ascending: false })
+    if (data) setOfficialEvents(data)
+  }
 
   async function fetchReports() {
     const { data } = await supabase
@@ -124,9 +137,32 @@ export default function App() {
     )
   }
 
+  // ── Route admin (/admin) ────────────────────────────────────────────────────
+  if (isAdmin) {
+    return (
+      <AdminPage
+        onClose={() => {
+          window.history.pushState({}, '', '/')
+          setIsAdmin(false)
+          fetchOfficialEvents()
+        }}
+      />
+    )
+  }
+
   return (
     <div className="app">
-      {activeTab === 'carte' && <Map reports={visibleReports} position={position} planResult={planResult} />}
+      <AlertBanner officialEvents={officialEvents} />
+
+      {activeTab === 'carte' && (
+        <Map
+          reports={visibleReports}
+          position={position}
+          planResult={planResult}
+          officialEvents={officialEvents}
+          showOfficial={showOfficial}
+        />
+      )}
       {activeTab === 'badges' && (
         <Badges reportCount={userReportCount} user={user} onSignup={() => setShowAuth('register')} />
       )}
@@ -139,6 +175,16 @@ export default function App() {
         <button className="plan-pill" onClick={() => setShowPlan(true)}>
           <span>📅</span>
           <span>Je planifie</span>
+        </button>
+      )}
+
+      {/* ── Toggle données officielles ── */}
+      {activeTab === 'carte' && (
+        <button
+          className={`official-toggle ${showOfficial ? 'official-toggle-on' : ''}`}
+          onClick={() => setShowOfficial(v => !v)}
+        >
+          👁️ <span>{showOfficial ? 'Officiel ON' : 'Officiel OFF'}</span>
         </button>
       )}
 

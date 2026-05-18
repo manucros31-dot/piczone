@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { NIVEAU_SCORE, haversineM, scoreToColor, scoreToLabel } from '../lib/geo'
+import { EVENT_TYPES, isActiveEvent } from '../lib/officialData'
 
 // ─── Colour stops (fill opacity only — color comes from geo.js) ───────────────
 
@@ -66,8 +67,12 @@ function PlanController({ planResult }) {
 
 // ─── Map ──────────────────────────────────────────────────────────────────────
 
-export default function Map({ reports, position, planResult }) {
-  const clusters = useMemo(() => clusterReports(reports), [reports])
+export default function Map({ reports, position, planResult, officialEvents = [], showOfficial = false }) {
+  const clusters      = useMemo(() => clusterReports(reports), [reports])
+  const activeOfficial = useMemo(
+    () => showOfficial ? officialEvents.filter(isActiveEvent) : [],
+    [officialEvents, showOfficial]
+  )
 
   return (
     <MapContainer
@@ -118,6 +123,44 @@ export default function Map({ reports, position, planResult }) {
           </Popup>
         </Circle>
       ))}
+
+      {/* ── Données officielles ── */}
+      {activeOfficial.map((ev) => {
+        const t = EVENT_TYPES[ev.type] ?? EVENT_TYPES.information
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="official-marker" style="background:${t.color}">${t.icon}</div>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        })
+        return (
+          <Marker key={ev.id} position={[ev.latitude, ev.longitude]} icon={icon}>
+            <Circle
+              center={[ev.latitude, ev.longitude]}
+              radius={ev.radius ?? 500}
+              pathOptions={{
+                color: t.color, fillColor: t.color,
+                fillOpacity: 0.08, weight: 1.5, dashArray: '6,4',
+              }}
+            />
+            <Popup>
+              <strong>{t.icon} {t.label}</strong><br />
+              {ev.title}<br />
+              {ev.description && <><small>{ev.description}</small><br /></>}
+              {ev.source_name && (
+                <small>
+                  Source :{' '}
+                  {ev.source_url
+                    ? <a href={ev.source_url} target="_blank" rel="noopener noreferrer">{ev.source_name}</a>
+                    : ev.source_name}
+                </small>
+              )}
+              <br />
+              <small>{ev.start_date}{ev.end_date ? ` → ${ev.end_date}` : ''}</small>
+            </Popup>
+          </Marker>
+        )
+      })}
 
       <LocationTracker position={position} />
       <PlanController planResult={planResult} />
