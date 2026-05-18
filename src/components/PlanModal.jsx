@@ -69,17 +69,6 @@ export default function PlanModal({ onClose, onConfirm }) {
           </div>
         </div>
 
-        <div className="plan-disclaimer">
-          <span className="plan-disclaimer-icon">ⓘ</span>
-          <p className="plan-disclaimer-text">
-            Les informations affichées sur PIKZONE sont exclusivement issues de signalements
-            volontaires de la communauté d'utilisateurs. Elles reflètent un ressenti subjectif
-            à un instant donné et ne constituent en aucun cas une expertise scientifique,
-            sanitaire ou commerciale. PIKZONE ne peut être tenu responsable des décisions
-            prises sur la base de ces informations.
-          </p>
-        </div>
-
         {/* ── ÉTAPE 1 : lieu ── */}
         {step === 1 && (
           <div className="plan-body">
@@ -112,6 +101,17 @@ export default function PlanModal({ onClose, onConfirm }) {
             {query.length >= 3 && !searching && suggestions.length === 0 && (
               <p className="search-empty">Aucun résultat pour « {query} »</p>
             )}
+
+            <div className="plan-disclaimer">
+              <span className="plan-disclaimer-icon">ⓘ</span>
+              <p className="plan-disclaimer-text">
+                Les informations affichées sur PIKZONE sont exclusivement issues de signalements
+                volontaires de la communauté d'utilisateurs. Elles reflètent un ressenti subjectif
+                à un instant donné et ne constituent en aucun cas une expertise scientifique,
+                sanitaire ou commerciale. PIKZONE ne peut être tenu responsable des décisions
+                prises sur la base de ces informations.
+              </p>
+            </div>
           </div>
         )}
 
