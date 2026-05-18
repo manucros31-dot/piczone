@@ -60,11 +60,15 @@ export default function App() {
   }
 
   async function loadMosquitoAlert() {
-    if (mosquitoAlertData.length > 0) return   // déjà chargé
+    if (mosquitoAlertData.length > 0) return   // déjà chargé (cache)
     setMaLoading(true)
     const data = await fetchMosquitoAlertData()
     setMosquitoAlertData(data)
     setMaLoading(false)
+    // Toast informatif si aucune donnée dans l'emprise visible
+    if (data.length === 0) {
+      setNewBadge({ emoji: 'ℹ️', title: 'Aucune donnée Mosquito Alert disponible' })
+    }
   }
 
   async function fetchReports() {

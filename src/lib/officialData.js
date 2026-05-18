@@ -50,7 +50,7 @@ export async function fetchMosquitoAlertData() {
   // 2. Paginer sur les 3 premières pages (300 obs récentes), filtrer bbox Europe
   const results = []
   try {
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= 8; page++) {
       const res = await fetch(
         `https://api.mosquitoalert.com/v1/observations/?page_size=100&ordering=-created_at&page=${page}`,
         { signal: AbortSignal.timeout(8000) }
