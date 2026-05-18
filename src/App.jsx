@@ -260,7 +260,7 @@ export default function App() {
             ) : (
               <p className="plan-banner-score">
                 Aucun signalement connu pour cette zone.
-                Les données apparaîtront quand des utilisateurs seront sur place.
+                Les données apparaîtront quand des utilisateurs feront un signalement sur place.
               </p>
             )}
           </div>

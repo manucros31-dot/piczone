@@ -54,11 +54,10 @@ function LocationMarker({ position }) {
 
 // Gère : centrage initial, timer 5s auto-recenter, bouton recenter externe
 function MapController({ position, onCenterChange, recenterRef }) {
-  const map             = useMap()
-  const timerRef        = useRef(null)
-  const initializedRef  = useRef(false)
-  const isProgrammatic  = useRef(false)
-  const positionRef     = useRef(position)
+  const map            = useMap()
+  const initializedRef = useRef(false)
+  const isProgrammatic = useRef(false)
+  const positionRef    = useRef(position)
 
   // Garde positionRef à jour sans recréer les handlers
   useEffect(() => { positionRef.current = position }, [position])
@@ -85,39 +84,20 @@ function MapController({ position, onCenterChange, recenterRef }) {
     }
   }, [position, map])
 
-  // Écoute les mouvements : notifie le centre et gère le timer 5s
+  // Écoute les mouvements : notifie le centre au parent
   useEffect(() => {
-    function onMoveStart() {
-      // Mouvement initié par l'utilisateur → annuler le timer
-      if (!isProgrammatic.current && timerRef.current) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
-    }
     function onMoveEnd() {
       const c = map.getCenter()
       onCenterChange({ lat: c.lat, lng: c.lng })
 
       if (isProgrammatic.current) {
-        // Notre propre flyTo vient de finir → reset flag, pas de timer
         isProgrammatic.current = false
-        return
-      }
-      // Mouvement utilisateur → déclencher retour auto dans 5s
-      if (positionRef.current) {
-        if (timerRef.current) clearTimeout(timerRef.current)
-        timerRef.current = setTimeout(flyToGPS, 5000)
       }
     }
 
-    map.on('movestart', onMoveStart)
-    map.on('moveend',   onMoveEnd)
-    return () => {
-      map.off('movestart', onMoveStart)
-      map.off('moveend',   onMoveEnd)
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [map, onCenterChange, flyToGPS])
+    map.on('moveend', onMoveEnd)
+    return () => { map.off('moveend', onMoveEnd) }
+  }, [map, onCenterChange])
 
   return null
 }
