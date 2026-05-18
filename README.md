@@ -10,8 +10,7 @@ Stack : **React 19 + Vite · react-leaflet · Supabase · PWA**
 ### Carte
 - Carte Leaflet interactive centrée sur la France
 - **Géolocalisation GPS** : centrage initial unique sur l'utilisateur, déplacement libre ensuite
-- **Retour automatique** : après 5 secondes d'inactivité, la carte revient doucement sur la position GPS (`flyTo`)
-- **Bouton 📍** : recentrage manuel immédiat, pulse quand l'utilisateur est éloigné
+- **Bouton 📍** : recentrage manuel immédiat sur la position GPS, pulse quand l'utilisateur est éloigné
 - Clustering spatial des signalements (rayon 50 m)
 - Zones colorées par niveau d'infestation :
   - 🔴 Rouge — Infesté
@@ -39,12 +38,16 @@ Stack : **React 19 + Vite · react-leaflet · Supabase · PWA**
 - Bandeau d'alerte automatique si un événement de type `alerte_dengue / chikungunya / zika` est actif
 
 ### Authentification & profil
-- Connexion / inscription via Supabase Auth
-- Profil utilisateur et compteur de signalements
+- Connexion / inscription via Supabase Auth (confirmation email désactivée pour la beta)
+- Pseudo affiché dans la barre de navigation (tronqué à 12 caractères)
+- Page profil en deux colonnes :
+  - **Gauche** : badge actuel (⚔️/🛡️/💀) avec message personnalisé, barre de progression, 6 statistiques (signalements, ce mois-ci, zones distinctes, temps sur l'app, ancienneté, classement communauté)
+  - **Droite** : 5 catégories d'astuces anti-moustiques (pièges, plantes, boutique, gîtes larvaires, maison)
 - Système de badges :
-  - 🎖️ Guerre aux Moustiques — 1er signalement
+  - ⚔️ Guerre aux Moustiques — 1er signalement
   - 🛡️ Anti-Moustiques — 20 signalements
-  - 💥 Moustique Destructeur — 40 signalements
+  - 💀 Moustique Destructeur — 40 signalements
+- Tracking de session : durée d'utilisation enregistrée dans Supabase (`sessions`)
 - Upsell compte pour les utilisateurs anonymes après le premier signalement
 
 ### PWA
@@ -117,8 +120,9 @@ VITE_ADMIN_PASSWORD=ADMIN_PIKZONE2026
 | Table | Description |
 |-------|-------------|
 | `signalements` | Signalements communautaires (lat, lng, niveau, user_id, auth_user_id) |
-| `profiles` | Profils utilisateurs liés à Supabase Auth |
+| `profiles` | Profils utilisateurs liés à Supabase Auth (pseudo, prenom, nom) |
 | `official_events` | Événements officiels créés via l'admin |
+| `sessions` | Suivi des sessions utilisateur (started_at, ended_at, duration_minutes) |
 
 ---
 
@@ -130,10 +134,10 @@ src/
 │   ├── Map.jsx            # Carte Leaflet + GPS + clustering + données officielles
 │   ├── ReportModal.jsx    # Formulaire de signalement
 │   ├── Badges.jsx         # Page des badges
-│   ├── BottomNav.jsx      # Barre de navigation (avec état isNearGPS)
+│   ├── BottomNav.jsx      # Barre de navigation (isNearGPS + pseudo tronqué)
 │   ├── PlanModal.jsx      # Modale "Je planifie" (2 étapes)
 │   ├── AuthModal.jsx      # Connexion / inscription
-│   ├── Profile.jsx        # Page profil
+│   ├── Profile.jsx        # Page profil (2 colonnes : stats + astuces)
 │   ├── AdminPage.jsx      # Interface admin (/admin)
 │   ├── AlertBanner.jsx    # Bandeau alerte automatique
 │   ├── BetaGate.jsx       # Portail d'accès beta
@@ -176,16 +180,20 @@ Le composant `MapController` (interne à `Map.jsx`) gère l'intégralité de la 
 
 ```
 1. Premier fix GPS reçu → flyTo(position, zoom=15, duration=1.5s)  [une seule fois]
-2. Utilisateur déplace la carte → annulation du timer
-3. Fin de déplacement → démarrage timer 5s
-4. Timer écoulé → flyTo(position, zoomActuel, duration=1.5s)
-5. Clic bouton 📍 → annulation timer + flyTo immédiat
+2. L'utilisateur se balade librement sans recentrage automatique
+3. Clic bouton 📍 → flyTo(position, zoomActuel, duration=1.5s)
 ```
 
-Le flag `isProgrammatic` empêche les mouvements déclenchés par `flyTo` de relancer le timer.
+Le flag `isProgrammatic` empêche les mouvements déclenchés par `flyTo` de notifier inutilement le parent.
 
 `isNearGPS` dans `App.jsx` = `haversineM(centreVue, GPS) ≤ 50 m`  
 → contrôle l'état actif/grisé du bouton Signaler.
+
+## Tracking de session — détail technique
+
+À chaque connexion, `App.jsx` insère une ligne dans `sessions` avec `started_at = now()`.  
+À la fermeture (`beforeunload` ou démontage du composant), la ligne est mise à jour avec `ended_at` et `duration_minutes`.  
+La page profil agrège ces données pour afficher le temps total passé sur l'app.
 
 ---
 
