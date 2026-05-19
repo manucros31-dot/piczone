@@ -65,7 +65,6 @@ function MapController({ position, onCenterChange, recenterRef }) {
   const flyToGPS = useCallback(() => {
     const pos = positionRef.current
     if (!pos) return
-    if (timerRef.current) clearTimeout(timerRef.current)
     isProgrammatic.current = true
     map.flyTo([pos.lat, pos.lng], Math.max(map.getZoom(), 15), { duration: 1.5 })
   }, [map])

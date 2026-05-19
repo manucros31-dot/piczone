@@ -44,6 +44,7 @@ export default function App() {
   )
   const [mapCenter, setMapCenter]           = useState(null)
   const [showLockedToast, setShowLockedToast] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(false)
   const recenterRef = useRef(null)
   const lockedToastTimer = useRef(null)
   const sessionIdRef = useRef(null)
@@ -147,8 +148,16 @@ export default function App() {
   }
 
   async function fetchProfile() {
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    if (data) setProfile(data)
+    setProfileLoading(true)
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      if (data) setProfile(data)
+      else console.warn('fetchProfile: aucun profil trouvé', error?.message)
+    } catch (e) {
+      console.error('fetchProfile error:', e)
+    } finally {
+      setProfileLoading(false)
+    }
   }
 
   async function handleReport(niveau) {
@@ -236,7 +245,7 @@ export default function App() {
         <Badges reportCount={userReportCount} user={user} onSignup={() => setShowAuth('register')} />
       )}
       {activeTab === 'profil' && user && (
-        <Profile user={user} profile={profile} reportCount={userReportCount} />
+        <Profile user={user} profile={profile} reportCount={userReportCount} profileLoading={profileLoading} onRetry={fetchProfile} />
       )}
 
       {/* ── Bouton pastille Je planifie ── */}

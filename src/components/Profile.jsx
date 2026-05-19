@@ -111,7 +111,7 @@ const TIPS = [
 
 // ─── Composant ────────────────────────────────────────────────────────────────
 
-export default function Profile({ user, profile, reportCount }) {
+export default function Profile({ user, profile, reportCount, profileLoading, onRetry }) {
   const [stats, setStats]           = useState(null)
   const [statsLoading, setStatsLoading] = useState(false)
 
@@ -190,13 +190,27 @@ export default function Profile({ user, profile, reportCount }) {
     await supabase.auth.signOut()
   }
 
-  // Chargement du profil en cours
   if (!user) return null
+
+  // Chargement en cours
+  if (profileLoading) {
+    return (
+      <div className="profile-page profile-centered">
+        <div className="spinner" />
+        <p className="profile-loading-text">Chargement de votre profil…</p>
+      </div>
+    )
+  }
+
+  // Profil introuvable
   if (!profile) {
     return (
-      <div className="profile-page" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 36 }}>🦟</span>
-        <p style={{ color: '#6b7280', marginTop: 12 }}>Chargement du profil…</p>
+      <div className="profile-page profile-centered">
+        <p style={{ fontSize: 36 }}>😕</p>
+        <p className="profile-loading-text">Impossible de charger le profil.</p>
+        <button className="submit-btn" style={{ marginTop: 16, maxWidth: 200 }} onClick={onRetry}>
+          Réessayer
+        </button>
       </div>
     )
   }
