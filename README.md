@@ -80,7 +80,7 @@ Stack : **React 19 + Vite · react-leaflet · Supabase · PWA**
 
 ```bash
 # Cloner le projet
-git clone https://github.com/manucros31-dot/piczone.git
+git clone https://github.com/manucros31-dot/pikzone.git
 cd pikzone
 
 # Installer les dépendances
