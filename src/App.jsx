@@ -243,7 +243,11 @@ export default function App() {
           {!isNearGPS && (
             <>
               <div className="dart-info-banner">
-                📍 Pointez la zone à signaler puis appuyez sur 🦟 Signaler ici
+                <svg width="9" height="18" viewBox="0 0 20 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="10" cy="8" r="8" fill="#BA7517" opacity="0.9"/>
+                  <polygon points="6,8 14,8 10,38" fill="#BA7517" opacity="0.9"/>
+                </svg>
+                Pointez la zone à signaler puis appuyez sur 🦟 Signaler ici
               </div>
               <div className="dart-indicator" aria-hidden="true">
                 <svg width="20" height="40" viewBox="0 0 20 40" xmlns="http://www.w3.org/2000/svg">
@@ -273,13 +277,16 @@ export default function App() {
 
       {/* ── Bouton recenter GPS ── */}
       {activeTab === 'carte' && position && (
-        <button
-          className={`recenter-btn ${!isNearGPS ? 'away' : ''}`}
-          onClick={handleRecenter}
-          title="Recentrer sur ma position"
-        >
-          📍
-        </button>
+        <div className="recenter-wrap">
+          <button
+            className={`recenter-btn ${!isNearGPS ? 'away' : ''}`}
+            onClick={handleRecenter}
+            title="Recentrer sur ma position"
+          >
+            📍
+          </button>
+          <span className="recenter-label">Ma position</span>
+        </div>
       )}
 
       {/* ── Toggle données officielles ── */}

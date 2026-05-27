@@ -85,23 +85,23 @@
 }
 
 .nav-report-btn {
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: #1E6B2E;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.45);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(30,107,46,0.4);
   font-size: 26px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   transition: transform 0.15s, box-shadow 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
 .nav-report-btn:active {
   transform: scale(0.93);
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
 
 /* ─── Report modal ────────────────────────────────────── */
@@ -1412,11 +1412,26 @@
 
 /* ─── Bouton recenter GPS ──────────────────────────────── */
 
-.recenter-btn {
+.recenter-wrap {
   position: fixed;
   right: 14px;
   top: calc(33vh + 52px);
   z-index: 750;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.recenter-label {
+  font-size: 9px;
+  color: #757575;
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.recenter-btn {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -1451,25 +1466,25 @@
 /* ─── Bouton signaler mode B (distant) ─────────────────── */
 
 .nav-report-btn.distant {
-  background: linear-gradient(135deg, #d97706, #b45309);
-  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.45);
+  background: #BA7517;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.15), 0 4px 16px rgba(186,117,23,0.4);
   position: relative;
 }
 
-/* Wrapper pour bouton + label */
+/* Wrapper pour bouton + label — FAB qui dépasse au-dessus de la nav */
 .nav-report-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: 4px;
+  position: relative;
+  bottom: 22px;
 }
 
 .nav-report-label {
   font-size: 9px;
   font-weight: 600;
-  color: #6b7280;
   letter-spacing: 0.2px;
-  margin-top: -2px;
 }
 
 /* Badge 📍 sur le bouton distant */
@@ -1924,4 +1939,7 @@
   font-weight: 600;
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }

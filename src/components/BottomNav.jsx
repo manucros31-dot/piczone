@@ -22,7 +22,9 @@ export default function BottomNav({ activeTab, onTabChange, onReport, user, isNe
           <span className="nav-report-icon">🦟</span>
           {!isNearGPS && <span className="nav-report-badge">📍</span>}
         </button>
-        <span className="nav-report-label">{isNearGPS ? 'Signaler' : 'Signaler ici'}</span>
+        <span className="nav-report-label" style={{ color: isNearGPS ? '#1E6B2E' : '#BA7517' }}>
+          {isNearGPS ? 'Signaler' : 'Signaler ici'}
+        </span>
       </div>
 
       <button
